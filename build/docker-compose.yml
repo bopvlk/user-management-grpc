@@ -1,0 +1,55 @@
+version: '3.3'
+
+services:
+  grpc-client-api-gateway:
+    restart: always
+    build: 
+      context: ../grpc-client-api-gateway
+      dockerfile: Dockerfile
+    depends_on:
+      - grpc-server
+    ports:
+      # - 9000:9000
+      - 3030:3030
+    environment:
+      GRPC_PORT: ":9000"
+      HTTP_PORT: ":3030"
+      SIGNING_KEY: very_secret_key
+      TOKEN_TTL: 86400
+    command: ./bin/grpc-client-api-gateway
+  
+  grpc-server:
+    restart: always
+    build: 
+      context: ../grpc-server
+      dockerfile: Dockerfile
+    ports:
+      - 9000:9000
+    depends_on:
+      - db
+    environment:
+      GRCP_PORT: ":9000"
+      DB_PASSWORD: password
+      DB_ADDR: ":3306"
+      DB_NAME: "api"
+      DB_HOST: "db"
+    command: ./bin/grpc-server
+  
+  db:
+    image: mysql:5.7-oracle
+    ports:
+      - "3306:3306"
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: "password"
+      MYSQL_DATABASE: "api"
+     
+    volumes:
+      - my-db:/var/lib/mysql
+
+volumes:
+  my-db:
+    
+  
+    
+    

@@ -1,0 +1,79 @@
+syntax = "proto3";
+
+package grcp;
+
+option go_package = "./proto/pb";
+
+import "google/protobuf/timestamp.proto";
+
+message User {
+    uint32 iD = 1;
+    string firstName = 2;
+    string lastName = 3;
+    string email = 4;
+    string password = 5;
+    google.protobuf.Timestamp createdAt = 6;
+    google.protobuf.Timestamp updatedAt = 7;
+    message DeleteAt {
+        google.protobuf.Timestamp time = 1;
+        bool valid = 2;
+    }
+    DeleteAt deleteAt = 8;
+}
+
+message CreateRequest {
+    string firstName = 1;
+    string lastName = 2;
+    string email = 3;
+    string password = 4;
+   }
+
+message CreateResponse {
+    User user = 1;
+}
+
+message FetchByEmailRequest {
+    string email = 1;
+    }
+
+message FetchByIDRequest {
+    uint32 id = 1; 
+}
+
+message FetchByIDResponse {
+    User user = 1; 
+}
+
+message FetchUsersRequest {
+    int32 Limit = 1;
+    int32 Page = 2; 
+}
+
+message FetchUsersResponse {
+    repeated User users = 1;
+}
+
+message UpdateRequest {
+    User user = 2; 
+}
+
+message UpdateResponse {
+    uint32 id = 1;
+}
+
+message DeleteRequest {
+    uint32 id = 1;
+}
+
+message DeleteResponse {
+    uint32 id = 1;
+}
+
+service ApiService {
+    rpc Create(CreateRequest) returns (CreateResponse);
+    rpc FetchByEmail(FetchByEmailRequest) returns (FetchByIDResponse);
+    rpc FetchByID(FetchByIDRequest) returns (FetchByIDResponse);
+    rpc FetchUsers(FetchUsersRequest) returns (FetchUsersResponse);
+    rpc Update(UpdateRequest) returns (UpdateResponse);
+    rpc Delete(DeleteRequest) returns (DeleteResponse);
+}
