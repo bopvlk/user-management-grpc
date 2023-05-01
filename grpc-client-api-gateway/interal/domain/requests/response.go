@@ -2,9 +2,9 @@ package requests
 
 import "time"
 
-type IsDelete struct {
-	IsDelete  bool      `json:"is_delete"`
-	DeletedAt time.Time `json:"deleted_at"`
+type DeleteAt struct {
+	Time  time.Time `json:"deleted_at"`
+	Valid bool      `json:"valid"`
 }
 
 type UserResponse struct {
@@ -14,5 +14,5 @@ type UserResponse struct {
 	Email     string    `json:"email"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
-	IsDelete
+	DeleteAt
 }

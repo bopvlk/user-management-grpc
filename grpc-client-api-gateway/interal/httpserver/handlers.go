@@ -18,7 +18,7 @@ func (s *httpServer) SignUp(c *gin.Context) {
 		return
 	}
 
-	token, err := s.userDAO.CreateUser(c.Request.Context(), signUpRequest.Email, signUpRequest.Password, signUpRequest.FirstName, signUpRequest.LastName)
+	token, err := s.userDAO.CreateUser(c.Request.Context(), signUpRequest.FirstName, signUpRequest.LastName, signUpRequest.Email, signUpRequest.Password)
 	if err != nil {
 		s.log.err.Print(err)
 		mappers.MapAppErrorToErrorResponse(c, err)

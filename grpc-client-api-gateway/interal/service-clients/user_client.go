@@ -39,13 +39,13 @@ func NewUserService(c *config.Config, conn *grpc.ClientConn) DAO {
 		service: pb.NewApiServiceClient(conn)}
 }
 
-func (us *UserService) CreateUser(ctx context.Context, email, password, firstName, lastName string) (string, error) {
+func (us *UserService) CreateUser(ctx context.Context, firstName, lastName, email, password string) (string, error) {
 	hashedPassword, err := hashPassword(password)
 	if err != nil {
 		return "", apperrors.HashingErr.AppendMessage(err)
 	}
 
-	createResponse, err := us.service.Create(ctx, &pb.CreateRequest{Email: email, Password: hashedPassword, FirstName: firstName, LastName: lastName})
+	createResponse, err := us.service.Create(ctx, &pb.CreateRequest{FirstName: firstName, LastName: lastName, Email: email, Password: hashedPassword})
 	if err != nil {
 		return "", apperrors.GRPCErr.AppendMessage(err)
 	}
@@ -120,7 +120,7 @@ func (us *UserService) makeSignedToken(id uint, firstName, email string) (string
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(us.conf.SigningKey)
+	return token.SignedString([]byte(us.conf.SigningKey))
 }
 
 func hashPassword(password string) (string, error) {

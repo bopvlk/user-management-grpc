@@ -7,10 +7,11 @@ import (
 
 	"git.foxminded.com.ua/grpc/grpc-server/interal/config"
 
-	// _ "github.com/go-mysql-org/go-mysql/driver"
 	"github.com/golang-migrate/migrate/v4"
-	_ "github.com/golang-migrate/migrate/v4/database/mysql"
+	"github.com/golang-migrate/migrate/v4/database/mysql"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 func InitDatabase(conf *config.Config) (*sql.DB, error) {
@@ -35,33 +36,44 @@ func InitDatabase(conf *config.Config) (*sql.DB, error) {
 
 	// dsn := sqlcfg.FormatDSN()
 	// fmt.Println(dsn)
-	db, err := sql.Open("mysql", "root:password@tcp(172.17.0.2:3306)/api")
+
+	//allowNativePasswords=true
+	db, err := sql.Open("mysql", "root:qwerty@tcp(mariadb:3306)/api")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf(" sql.Open(): %v", err)
 	}
 
-	// driverConnector, err := mysql.NewConnector(&sqlcfg)
+	// _, err = db.Exec("CREATE DATABASE `api`")
 	// if err != nil {
-	// 	return nil, fmt.Errorf("mysql.NewConnector: %v", err)
+	// 	return nil, fmt.Errorf("db.Exec(\"CREATE DATABASE...\"): %v", err)
 	// }
-
-	// db.SetMaxOpenConns(5)
-	// db.SetMaxIdleConns(5)
-	// db.SetConnMaxLifetime(time.Minute * 5)
 
 	err = db.Ping()
 	if err != nil {
 		return nil, fmt.Errorf("db.Ping(): %v", err)
 	}
 
-	// migr, err := migrate.New("file:///usr/grpc-server/schema/", dsn)
-	migr, err := migrate.New("file:///home/bopvlk/go/src/git.foxminded.com.ua/grpc/grpc-server/schema", "user:user@tcp(172.17.0.2:3306)/api")
+	driver, err := mysql.WithInstance(db, &mysql.Config{})
 	if err != nil {
-		return nil, fmt.Errorf("migrate.New(): %v", err)
+		return nil, fmt.Errorf("mysql.WithInstance(): %v", err)
 	}
 
-	if err := migr.Up(); err != nil {
-		return nil, err
+	m, err := migrate.NewWithDatabaseInstance(
+		"file:///usr/grpc-server/schema/",
+		"mysql", driver)
+	if err != nil {
+		return nil, fmt.Errorf("migrate.NewWithDatabaseInstance(): %v", err)
 	}
+	m.Up()
+
+	// migr, err := migrate.New("file:///usr/grpc-server/schema/", "user:user@tcp(172.17.0.2:3306)/api")
+	// migr, err := migrate.New("file:///home/bopvlk/go/src/git.foxminded.com.ua/grpc/grpc-server/schema", "user:user@tcp(172.17.0.2:3306)/api")
+	// if err != nil {
+	// 	return nil, fmt.Errorf("migrate.New(): %v", err)
+	// }
+
+	// if err := migr.Up(); err != nil {
+	// 	return nil, err
+	// }
 	return db, nil
 }

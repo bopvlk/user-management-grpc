@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
 	"git.foxminded.com.ua/grpc/grpc-server/interal/config"
 	"git.foxminded.com.ua/grpc/grpc-server/interal/domain/models"
@@ -24,8 +25,10 @@ func NewUserRepository(conf *config.Config, db *sql.DB, l *logger.Logger) *UserR
 }
 
 func (ur *UserRepository) Create(ctx context.Context, firstName, lastName, email, password string) (uint32, error) {
-	sqlStatement := "INSERT INTO ? (firstname, lastname, email, password) VALUES (?, ?, ?, ?)"
-	result, err := ur.db.ExecContext(ctx, sqlStatement, ur.conf.DBName, firstName, lastName, email, password)
+	sqlStatement := fmt.Sprintf("INSERT INTO users (first_name, last_name, email, password) VALUES ('%s', '%s', '%s', '%s')",
+		firstName, lastName, email, password)
+	fmt.Println("\n\n\n\n", sqlStatement)
+	result, err := ur.db.ExecContext(ctx, sqlStatement)
 	if err != nil {
 		return 0, err
 	}
@@ -41,32 +44,52 @@ func (ur *UserRepository) Create(ctx context.Context, firstName, lastName, email
 
 func (ur *UserRepository) FetchByEmail(ctx context.Context, email string) (*models.User, error) {
 	u := &models.User{}
-	sqlStatement := "SELECT * FROM ? WHERE email = ? deleted_at IS NULL"
-	rows, err := ur.db.QueryContext(ctx, sqlStatement, ur.conf.DBName, email)
+	uaa := make([]models.User, 0)
+	sqlStatement := fmt.Sprint("SELECT * FROM users;")
+	// WHERE email = '%s' AND deleted_at IS NULL LIMIT 1
+	fmt.Println("\n\n\n", sqlStatement)
+	rows, err := ur.db.QueryContext(ctx, sqlStatement)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	if err = rows.Scan(&u.ID, u.FirstName, &u.LastName, &u.Email, &u.CreatedAt, &u.UpdatedAt, &u.DeleteAt); err != nil {
+	for rows.Next() {
+		if err = rows.Scan(&u.ID, &u.FirstName, &u.LastName, &u.Email, &u.Password, &u.CreatedAt, &u.UpdatedAt, &u.DeleteAt); err != nil {
+			return nil, err
+		}
+		uaa = append(uaa, *u)
+	}
+
+	fmt.Println("\n\n\n", uaa)
+
+	if err := rows.Err(); err != nil {
 		return nil, err
 	}
+
 	ur.l.Info.Printf("Fetched by email user with id = %d\n", u.ID)
 	return u, nil
 }
 
 func (ur *UserRepository) FetchByID(ctx context.Context, id uint32) (*models.User, error) {
 	u := &models.User{}
-	sqlStatement := "SELECT * FROM ? WHERE id = ? AND deleted_at IS NULL"
+	sqlStatement := "SELECT 1 FROM users WHERE id = ? AND deleted_at IS NULL LIMIT 1"
 	rows, err := ur.db.QueryContext(ctx, sqlStatement, ur.conf.DBName, id)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	if err = rows.Scan(&u.ID, u.FirstName, &u.LastName, &u.Email, &u.CreatedAt, &u.UpdatedAt, &u.DeleteAt); err != nil {
+	for rows.Next() {
+		if err = rows.Scan(&u.ID, u.FirstName, &u.LastName, &u.Email, &u.CreatedAt, &u.UpdatedAt, &u.DeleteAt); err != nil {
+			return nil, err
+		}
+	}
+
+	if err := rows.Err(); err != nil {
 		return nil, err
 	}
+
 	ur.l.Info.Printf("Fetched by id user with id = %d\n", u.ID)
 	return u, nil
 }

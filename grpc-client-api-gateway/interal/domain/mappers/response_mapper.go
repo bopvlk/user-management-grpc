@@ -23,11 +23,10 @@ func MapPBUSERToGetUserResponse(c *gin.Context, u *pb.User) {
 		Email:     u.Email,
 		CreatedAt: u.CreatedAt.AsTime(),
 		UpdatedAt: u.UpdatedAt.AsTime(),
-		IsDelete: requests.IsDelete{
-			IsDelete:  u.IsDelete.Valid,
-			DeletedAt: u.IsDelete.DeleteAt.AsTime(),
-		},
-	}
+		DeleteAt: requests.DeleteAt{
+			Time:  u.DeleteAt.Time.AsTime(),
+			Valid: u.DeleteAt.Valid}}
+
 	c.JSON(http.StatusOK, gin.H{
 		"Message": fmt.Sprint("There is user with id", u.ID),
 		"User":    mapedUser,

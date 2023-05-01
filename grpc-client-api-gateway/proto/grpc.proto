@@ -14,11 +14,11 @@ message User {
     string password = 5;
     google.protobuf.Timestamp createdAt = 6;
     google.protobuf.Timestamp updatedAt = 7;
-    message IsDelete {
-        google.protobuf.Timestamp deleteAt = 1;
-        bool Valid = 2;
+    message DeleteAt {
+        google.protobuf.Timestamp time = 1;
+        bool valid = 2;
     }
-    IsDelete isDelete = 8;
+    DeleteAt deleteAt = 8;
 }
 
 message CreateRequest {
@@ -26,7 +26,8 @@ message CreateRequest {
     string password = 2;
     string firstName = 3;
     string lastName = 4;
-}
+  
+   }
 
 message CreateResponse {
     User user = 1;

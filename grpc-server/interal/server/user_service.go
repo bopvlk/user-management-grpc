@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 
 	"git.foxminded.com.ua/grpc/grpc-server/interal/domain/mappers"
 	"git.foxminded.com.ua/grpc/grpc-server/interal/repository"
@@ -21,6 +22,7 @@ func newUserService(storage *repository.UserRepository) *userService {
 }
 
 func (us *userService) Create(ctx context.Context, createRequest *pb.CreateRequest) (*pb.CreateResponse, error) {
+	fmt.Printf("%#v", createRequest)
 	id, err := us.storage.Create(ctx, createRequest.FirstName, createRequest.LastName, createRequest.Email, createRequest.Password)
 	if err != nil {
 		return nil, err
