@@ -1,0 +1,63 @@
+version: '3.3'
+
+services:
+  grpc-client-api-gateway:
+    restart: always
+    build: 
+      context: ../grpc-client-api-gateway
+      dockerfile: Dockerfile
+    depends_on:
+      - service-user
+      - mariadb
+    ports:
+         - 3030:3030
+    environment:
+      GRPC_PORT: ":9000"
+      HTTP_PORT: ":3030"
+      SIGNING_KEY: "very_secret_key"
+      TOKEN_TTL: 86400
+    command: ./bin/grpc-client-api-gateway
+  
+  service-user:
+    restart: always
+    build: 
+      context: ../service-user
+      dockerfile: Dockerfile
+    ports:
+      - 9000:9000
+    depends_on:
+      - mariadb
+    
+    environment:
+      - GRCP_PORT=:9000
+      - DB_PASSWORD=qwerty
+      - DB_ADDR=mariadb:3306
+      - DB_NAME=api
+
+      - MIGR_FILE_ADDR=file:///usr/service-user/schema/
+      
+      - WAIT_HOSTS=mariadb:3306
+      - WAIT_HOSTS_TIMEOUT=300
+      - WAIT_SLEEP_INTERVAL=10
+      - WAIT_HOST_CONNECT_TIMEOUT=10
+ 
+    command: sh -c "/wait && ./bin/service-user"
+  
+  mariadb:
+    image:  mariadb:11.0.1-rc-jammy
+    ports:
+      - "3306:3306"
+    restart: always
+    environment:
+      MARIADB_DATABASE: api
+      MARIADB_ROOT_PASSWORD: qwerty     
+    volumes:
+      - my-db:/var/lib/mysql
+    
+
+volumes:
+  my-db:
+    
+  
+    
+    
