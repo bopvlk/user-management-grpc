@@ -11,6 +11,7 @@ func initRouter(server *httpServer) *gin.Engine {
 	router.POST("/sign-in", server.SignIn)
 
 	restrictedGroup := router.Group("/restricted")
+	restrictedGroup.Use(server.jwtAuthMiddleware())
 	restrictedGroup.GET("/user/:id", server.GetOneUser)
 
 	return router

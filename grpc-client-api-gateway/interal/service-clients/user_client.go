@@ -16,8 +16,8 @@ type DAO interface {
 	CreateUser(ctx context.Context, email, password, firstName, LastName string) (string, error)
 	FetchUserByEmail(ctx context.Context, email, password string) (string, error)
 	FetchUserByID(ctx context.Context, id uint) (*pb.User, error)
-	FetchUsers(ctx context.Context, limit, page int) ([]*pb.User, error)
-	UpdateUser(ctx context.Context, user *pb.User) (uint32, error)
+	FetchUsers(ctx context.Context, limit, page int) ([]*pb.User, int, error)
+	UpdateUser(ctx context.Context, firstName, lastName, email, password string) (uint32, error)
 	DeleteUser(ctx context.Context, id uint) (uint32, error)
 }
 
@@ -83,17 +83,24 @@ func (us *UserService) FetchUserByID(ctx context.Context, id uint) (*pb.User, er
 	return fetchByIDResponse.User, nil
 }
 
-func (us *UserService) FetchUsers(ctx context.Context, limit, page int) ([]*pb.User, error) {
+func (us *UserService) FetchUsers(ctx context.Context, limit, page int) ([]*pb.User, int, error) {
 	fetchUsersResponse, err := us.service.FetchUsers(ctx, &pb.FetchUsersRequest{Limit: int32(limit), Page: int32(page)})
 	if err != nil {
-		return nil, apperrors.GRPCErr.AppendMessage(err)
+		return nil, 0, apperrors.GRPCErr.AppendMessage(err)
 	}
 
-	return fetchUsersResponse.Users, nil
+	return fetchUsersResponse.Users, int(fetchUsersResponse.TotalPages), nil
 }
 
-func (us *UserService) UpdateUser(ctx context.Context, user *pb.User) (uint32, error) {
-	updateResponse, err := us.service.Update(ctx, &pb.UpdateRequest{User: user})
+func (us *UserService) UpdateUser(ctx context.Context, firstName, lastName, email, password string) (uint32, error) {
+	pbUser := &pb.User{
+		FirstName: firstName,
+		LastName:  lastName,
+		Email:     email,
+		Password:  password,
+	}
+
+	updateResponse, err := us.service.Update(ctx, &pb.UpdateRequest{User: pbUser})
 	if err != nil {
 		return 0, apperrors.GRPCErr.AppendMessage(err)
 	}

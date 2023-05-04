@@ -14,6 +14,7 @@ import (
 type httpServer struct {
 	userDAO clients.DAO
 	log     *loger
+	conf    *config.Config
 }
 
 type loger struct {
@@ -39,6 +40,7 @@ func Run() {
 	srv := httpServer{
 		log:     l,
 		userDAO: clients.NewUserService(conf, conn),
+		conf:    conf,
 	}
 
 	httpRouter := initRouter(&srv)

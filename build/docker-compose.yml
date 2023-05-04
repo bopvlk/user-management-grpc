@@ -7,24 +7,21 @@ services:
       context: ../grpc-client-api-gateway
       dockerfile: Dockerfile
     depends_on:
-      - grpc-server
+      - service-user
       - mariadb
     ports:
-      # - 9000:9000
-      - 3030:3030
+         - 3030:3030
     environment:
       GRPC_PORT: ":9000"
       HTTP_PORT: ":3030"
       SIGNING_KEY: "very_secret_key"
       TOKEN_TTL: 86400
-
-     
     command: ./bin/grpc-client-api-gateway
   
-  grpc-server:
+  service-user:
     restart: always
     build: 
-      context: ../grpc-server
+      context: ../service-user
       dockerfile: Dockerfile
     ports:
       - 9000:9000
@@ -36,13 +33,15 @@ services:
       - DB_PASSWORD=qwerty
       - DB_ADDR=mariadb:3306
       - DB_NAME=api
+
+      - MIGR_FILE_ADDR=file:///usr/service-user/schema/
       
       - WAIT_HOSTS=mariadb:3306
       - WAIT_HOSTS_TIMEOUT=300
       - WAIT_SLEEP_INTERVAL=10
       - WAIT_HOST_CONNECT_TIMEOUT=10
-    # command: ./bin/grpc-server
-    command: sh -c "/wait && ./bin/grpc-server"
+ 
+    command: sh -c "/wait && ./bin/service-user"
   
   mariadb:
     image:  mariadb:11.0.1-rc-jammy
@@ -50,20 +49,11 @@ services:
       - "3306:3306"
     restart: always
     environment:
-      # MYSQL_ROOT_PASSWORD: "password"
-      # MYSQL_DATABASE: "api"
       MARIADB_DATABASE: api
-      MARIADB_ROOT_PASSWORD: qwerty
-      
-      # MYSQL_DATABASE: api
-      # MYSQL_ROOT_PASSWORD: password
-      
-    # env_file:
-    #   - ./../grpc-server/.env
-     
+      MARIADB_ROOT_PASSWORD: qwerty     
     volumes:
       - my-db:/var/lib/mysql
-    # command: --default-authentication-plugin=mysql_native_password
+    
 
 volumes:
   my-db:

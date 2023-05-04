@@ -1,10 +1,8 @@
 package mappers
 
 import (
-	"fmt"
-	"net/http"
-
 	"git.foxminded.com.ua/grpc/grpc-client-api-gateway/interal/apperrors"
+	"git.foxminded.com.ua/grpc/grpc-client-api-gateway/interal/domain/models"
 	"git.foxminded.com.ua/grpc/grpc-client-api-gateway/interal/domain/requests"
 	"git.foxminded.com.ua/grpc/grpc-client-api-gateway/proto/pb"
 	"github.com/gin-gonic/gin"
@@ -13,22 +11,27 @@ import (
 func MapAppErrorToErrorResponse(c *gin.Context, err error) {
 	appErr := err.(*apperrors.AppError)
 	c.JSON(appErr.HTTPCode, gin.H{"error": err.Error()})
+	c.Abort()
 }
 
-func MapPBUSERToGetUserResponse(c *gin.Context, u *pb.User) {
-	mapedUser := requests.UserResponse{
+func MapPBUserToGetUserResponse(u *pb.User) *requests.UserResponse {
+	return &requests.UserResponse{
 		ID:        uint(u.ID),
 		FirstName: u.FirstName,
 		LastName:  u.LastName,
 		Email:     u.Email,
 		CreatedAt: u.CreatedAt.AsTime(),
 		UpdatedAt: u.UpdatedAt.AsTime(),
-		DeleteAt: requests.DeleteAt{
-			Time:  u.DeleteAt.Time.AsTime(),
-			Valid: u.DeleteAt.Valid}}
+		DeleteAt:  u.DeleteAt.Time.AsTime()}
+}
 
-	c.JSON(http.StatusOK, gin.H{
-		"Message": fmt.Sprint("There is user with id", u.ID),
-		"User":    mapedUser,
-	})
+func MapPBUsersToPagination(users []*pb.User) *models.Pagination {
+	pagination := models.Pagination{}
+
+	usersResponse := make([]*requests.UserResponse, len(users))
+	for i := range users {
+		usersResponse[i] = MapPBUserToGetUserResponse(users[i])
+	}
+	pagination.Rows = usersResponse
+	return &pagination
 }

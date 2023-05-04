@@ -3,8 +3,8 @@ package mappers
 import (
 	"database/sql"
 
-	"git.foxminded.com.ua/grpc/grpc-server/interal/domain/models"
-	"git.foxminded.com.ua/grpc/grpc-server/proto/pb"
+	"git.foxminded.com.ua/grpc/service-user/interal/domain/models"
+	"git.foxminded.com.ua/grpc/service-user/proto/pb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -14,6 +14,7 @@ func MapPBUserToUser(pu *pb.User) *models.User {
 		FirstName: pu.FirstName,
 		LastName:  pu.LastName,
 		Email:     pu.Email,
+		Password:  pu.Password,
 		CreatedAt: pu.CreatedAt.AsTime(),
 		UpdatedAt: pu.UpdatedAt.AsTime(),
 		DeleteAt: sql.NullTime{
@@ -29,6 +30,7 @@ func MapUserToPBUser(u *models.User) *pb.User {
 		FirstName: u.FirstName,
 		LastName:  u.LastName,
 		Email:     u.Email,
+		Password:  u.Password,
 		CreatedAt: timestamppb.New(u.CreatedAt),
 		UpdatedAt: timestamppb.New(u.UpdatedAt),
 		DeleteAt: &pb.User_DeleteAt{

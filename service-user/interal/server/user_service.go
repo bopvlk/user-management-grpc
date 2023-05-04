@@ -2,11 +2,10 @@ package server
 
 import (
 	"context"
-	"fmt"
 
-	"git.foxminded.com.ua/grpc/grpc-server/interal/domain/mappers"
-	"git.foxminded.com.ua/grpc/grpc-server/interal/repository"
-	"git.foxminded.com.ua/grpc/grpc-server/proto/pb"
+	"git.foxminded.com.ua/grpc/service-user/interal/domain/mappers"
+	"git.foxminded.com.ua/grpc/service-user/interal/repository"
+	"git.foxminded.com.ua/grpc/service-user/proto/pb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -22,7 +21,6 @@ func newUserService(storage *repository.UserRepository) *userService {
 }
 
 func (us *userService) Create(ctx context.Context, createRequest *pb.CreateRequest) (*pb.CreateResponse, error) {
-	fmt.Printf("%#v", createRequest)
 	id, err := us.storage.Create(ctx, createRequest.FirstName, createRequest.LastName, createRequest.Email, createRequest.Password)
 	if err != nil {
 		return nil, err
@@ -56,4 +54,19 @@ func (us *userService) FetchByID(ctx context.Context, fetchByIDRequest *pb.Fetch
 	}
 	return &pb.FetchByIDResponse{
 		User: mappers.MapUserToPBUser(u)}, nil
+}
+
+func (us *userService) FetchUsers(ctx context.Context, fetchUsersRequest *pb.FetchUsersRequest) (*pb.FetchUsersResponse, error) {
+	users, totalPages, err := us.storage.FetchUsers(ctx, fetchUsersRequest.Limit, fetchUsersRequest.Page)
+	if err != nil {
+		return nil, err
+	}
+	pbUsers := make([]*pb.User, len(users))
+	for i := 0; i < len(users); i++ {
+		pbUsers[i] = mappers.MapUserToPBUser(&users[i])
+	}
+	return &pb.FetchUsersResponse{
+		Users:      pbUsers,
+		TotalPages: int32(totalPages),
+	}, nil
 }

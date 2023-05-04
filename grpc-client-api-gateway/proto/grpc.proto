@@ -52,6 +52,7 @@ message FetchUsersRequest {
 
 message FetchUsersResponse {
     repeated User users = 1;
+    int32 TotalPages = 2;
 }
 
 message UpdateRequest {
